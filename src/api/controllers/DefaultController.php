@@ -1,5 +1,5 @@
 <?php
-namespace foundation\packages\coupon\api\controllers;
+namespace foundation\packages\demo\api\controllers;
 
 use yii;
 use yii\rest\Controller;
