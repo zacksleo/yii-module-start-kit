@@ -1,0 +1,154 @@
+image: zacksleo/docker-composer:alpine
+
+before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" > ~/deploy.key
+    - chmod 0600 ~/deploy.key
+    - ssh-add ~/deploy.key
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - export APP_ENV=testing
+
+variables:
+    COMPOSER_CACHE_DIR: "/cache/composer"
+    DOCKER_DRIVER: overlay
+
+stages:
+    - prepare
+    - test
+build-cache:
+    stage: prepare
+    script:
+        - composer install --prefer-dist --optimize-autoloader -n --no-interaction -v --no-suggest
+        - composer dump-autoload --optimize
+    cache:
+      key: "$CI_COMMIT_REF_NAME"
+      paths:
+        - vendor
+    except:
+        - tags
+    when: manual
+    tags:
+        - mainland
+phpcs:
+    stage: test
+    dependencies: []
+    cache:
+      key: "$CI_COMMIT_REF_NAME"
+      policy: pull
+      paths:
+        - vendor
+    script:
+        - if [ ! -d "vendor" ]; then
+        - composer install --prefer-dist --optimize-autoloader -n --no-interaction -v --no-suggest && composer dump-autoload --optimize
+        - fi
+        - php vendor/bin/phpcs --config-set ignore_warnings_on_exit 1
+        - php vendor/bin/phpcs --standard=PSR2 --ignore=vendor/,console/migrations/,tests -w --colors ./src
+    except:
+        - tags
+        - master
+    tags:
+        - mainland
+phpmd:
+    stage: test
+    dependencies: []
+    cache:
+      key: "$CI_COMMIT_REF_NAME"
+      paths:
+        - vendor
+    script:
+        - if [ ! -d "vendor" ]; then
+        - composer install --prefer-dist --optimize-autoloader -n --no-interaction -v --no-suggest && composer dump-autoload --optimize
+        - fi
+        - vendor/bin/phpmd src text phpmd.xml --exclude src/console/migrations/ --suffixes php
+    except:
+        - tags
+        - master
+    tags:
+        - mainland
+
+codequality:
+    stage: test
+    image: docker:latest
+    variables:
+        DOCKER_DRIVER: overlay
+    before_script: []
+    cache: {}
+    dependencies: []
+    script:
+         - docker pull codeclimate/codeclimate
+         - VOLUME_PATH=/tmp/builds"$(echo $PWD | sed 's|^/[^/]*||')"
+         - docker run --env CODECLIMATE_CODE="$VOLUME_PATH" -v /tmp/cc:/tmp/cc -v $VOLUME_PATH:/code -v /var/run/docker.sock:/var/run/docker.sock codeclimate/codeclimate analyze -f text
+    except:
+        - tags
+        - master
+    tags:
+        - mainland
+    when: manual
+    allow_failure: true
+unit-test:
+    stage: test
+    services:
+        - mysql:5.6
+        - redis:alpine
+    variables:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: web
+        MYSQL_USER: web
+        MYSQL_PASSWORD: web
+        REDIS_PORT: 6379
+    dependencies: []
+    artifacts:
+        name: "debug"
+        when: on_failure
+        untracked: false
+        expire_in: 60 mins
+        paths:
+            - $CI_PROJECT_DIR/tests/_output
+    cache:
+      key: "$CI_COMMIT_REF_NAME"
+      paths:
+        - vendor
+    script:
+        - if [ ! -d "vendor" ]; then
+        - composer install --prefer-dist --optimize-autoloader -n --no-interaction -v --no-suggest && composer dump-autoload --optimize
+        - fi
+        - php tests/_app/yii.php migrate --interactive=0
+        - ./vendor/bin/codecept run unit -c tests --coverage --no-colors
+    tags:
+        - mainland
+api-test:
+    stage: test
+    services:
+        - mysql:5.6
+        - redis:alpine
+    variables:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: web
+        MYSQL_USER: web
+        MYSQL_PASSWORD: web
+        REDIS_PORT: 6379
+    dependencies: []
+    artifacts:
+        name: "debug"
+        when: on_failure
+        untracked: false
+        expire_in: 60 mins
+        paths:
+            - $CI_PROJECT_DIR/api/runtime
+            - $CI_PROJECT_DIR/tests/_output
+    cache:
+      key: "$CI_COMMIT_REF_NAME"
+      paths:
+        - vendor
+    script:
+        - if [ ! -d "vendor" ]; then
+        - composer install --prefer-dist --optimize-autoloader -n --no-interaction -v --no-suggest && composer dump-autoload --optimize
+        - fi
+        - php tests/_app/yii.php migrate --interactive=0
+        - php -S localhost:8080 --docroot tests/_app/api/web &>/dev/null&
+        - ./vendor/bin/codecept run api -c tests
+    except:
+        - docs
+    tags:
+        - mainland
