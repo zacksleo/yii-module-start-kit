@@ -21,7 +21,7 @@ install:
 - travis_retry composer self-update
 - travis_retry composer install --prefer-dist --no-interaction
 - ls
-- cp tests/.env .env
+- mv .travis.env .env
 - cat .env
 
 before_script:
