@@ -21,8 +21,8 @@ install:
 - travis_retry composer self-update
 - travis_retry composer install --prefer-dist --no-interaction
 - ls
+- cp tests/.env .env
 - cat .env
-- mv .travis.env .env
 
 before_script:
 - travis_retry mysql -e 'CREATE DATABASE web;'
