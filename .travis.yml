@@ -26,12 +26,11 @@ install:
 - cat .env
 - mv -f tests/travis.api.suite.yml tests/api.suite.yml
 - mv -f tests/travis.unit.suite.yml tests/unit.suite.yml
-- kill $(lsof -t -i:8080)
 
 before_script:
 - travis_retry mysql -e 'CREATE DATABASE web;'
 - php tests/_app/yii.php migrate --interactive=0
-- php -S localhost:8080 --docroot api/web &>/dev/null&
+- php -S localhost:8081 --docroot api/web &>/dev/null&
 
 script:
 - ./vendor/bin/codecept run api -c tests --debug
