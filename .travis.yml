@@ -26,6 +26,7 @@ install:
 - cat .env
 - mv -f tests/travis.api.suite.yml tests/api.suite.yml
 - mv -f tests/travis.unit.suite.yml tests/unit.suite.yml
+- kill $(lsof -t -i:8080)
 
 before_script:
 - travis_retry mysql -e 'CREATE DATABASE web;'
