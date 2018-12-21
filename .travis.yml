@@ -31,6 +31,7 @@ before_script:
 - travis_retry mysql -e 'CREATE DATABASE web;'
 - php tests/_app/yii.php migrate --interactive=0
 - php -S localhost:8080 --docroot tests/_app/api/web &>/dev/null&
+- curl http://localhost:8080/api/v1/defaults
 
 script:
 - ./vendor/bin/codecept run api -c tests --debug
