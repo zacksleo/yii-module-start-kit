@@ -15,5 +15,5 @@ composer create-project zacksleo/yii-module-start-kit:^0.01 projectName
 + install by genesis
 
 ```bash
-    genesis new:yii-module
+genesis new:yii-module
 ```
