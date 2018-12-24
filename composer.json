@@ -2,7 +2,7 @@
     "name": "foundation-packages/demo",
     "description": "demo module",
     "type": "yii2-extension",
-    "license": "private",
+    "license": "MIT",
     "authors": [
       {
         "name": "zacksleo",
