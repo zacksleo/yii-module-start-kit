@@ -9,7 +9,7 @@ yii modules start kit
 + install by composer
 
 ```bash
-composer create-project zacksleo/yii-module-start-kit projectName
+composer create-project foundation-packages/demo projectName
 ```
 
 + install by genesis
