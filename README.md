@@ -12,13 +12,15 @@ yii modules start kit
 composer create-project foundation-packages/demo projectName
 ```
 
-+ install by genesis
+## Change namespaces
 
-```bash
-genesis new:yii-module
-```
+1. open composer.json , then modify the package name `foundation-packages/demo`
 
-##  Relative Docs
+2. modify source namespace in the src directory
+
+`namespace foundation\packages\demo` -> `namespace foundation\packages\yourname`
+
+## Relative Docs
 
 + [Yii 模块](https://github.com/yiisoft/yii2/blob/master/docs/guide-zh-CN/structure-modules.md)
 
