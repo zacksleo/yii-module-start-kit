@@ -14,9 +14,13 @@ composer create-project foundation-packages/demo projectName
 
 ## Change namespaces
 
-1. open composer.json , then modify the package name `foundation-packages/demo`
+### open composer.json , then modify the package name
 
-2. modify source namespace in the src directory
+`foundation-packages/demo` -> `foundation-packages/yourname`
+
+`"foundation\\packages\\demo\\": "src"` -> `"foundation\\packages\\yourname\\": "src"`
+
+### modify source namespace in the src directory
 
 `namespace foundation\packages\demo` -> `namespace foundation\packages\yourname`
 
